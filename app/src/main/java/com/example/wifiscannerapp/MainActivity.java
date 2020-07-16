@@ -124,9 +124,9 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(MainActivity.this, "permission granted", Toast.LENGTH_SHORT).show();
                 scanWifiList();
-            } /*else {
+            } else {
                 Toast.makeText(MainActivity.this, "permission not granted", Toast.LENGTH_SHORT).show();
-            }*/
+            }
            /* else if (Build.VERSION.SDK_INT >= 23 && !shouldShowRequestPermissionRationale(permissions[0])) {
                 // User selected the Never Ask Again Option Change settings in app settings manually
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);

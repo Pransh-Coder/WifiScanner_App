@@ -249,7 +249,8 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
         builder.show();
 
     }
-    private void finallyConnect(String networkPass, String networkSSID) {
+    public void finallyConnect(String networkPass, String networkSSID) {
+
         WifiConfiguration wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = String.format("\"%s\"", networkSSID);
         wifiConfig.preSharedKey = String.format("\"%s\"", networkPass);
@@ -268,22 +269,25 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
         wifiManager.addNetwork(conf);
     }
 
-    private void connectToWifi(final String wifiSSID) {
+    //this function is called first from the click listner to pass the ssid
+    public void connectToWifi(final String wifiSSID) {
+
         final Dialog dialog = new Dialog(activity);
         dialog.setContentView(R.layout.connect);
+
         dialog.setTitle("Connect to Network");
         TextView textSSID = (TextView) dialog.findViewById(R.id.textSSID1);
 
         Button dialogButton = (Button) dialog.findViewById(R.id.okButton);
         final EditText pass = (EditText) dialog.findViewById(R.id.textPassword);
-        textSSID.setText(wifiSSID);
+        textSSID.setText(wifiSSID);    // setting the wifi name on top of dialog
 
         // if button is clicked, connect to the network;
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String checkPassword = pass.getText().toString();
-                finallyConnect(checkPassword, wifiSSID);
+                String checkPassword = pass.getText().toString();           // getting the password from edittext
+                finallyConnect(checkPassword, wifiSSID);                    // then calling finally connect function by passing both password and ssid [of wifi network to which you want to connect]
                 dialog.dismiss();
             }
         });

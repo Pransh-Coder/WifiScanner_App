@@ -38,9 +38,10 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView.LayoutManager layoutManager;
     RecyclerView.Adapter adapter;
 
-    List<ScanResult>scanResultList = new ArrayList<>();
+    List<ScanResult>scanResultList = new ArrayList<>();     //the list of access points found in the most recent scan
     //List<WifiInfo> wifiInfoList = new ArrayList<>();
 
+    //https://developer.android.com/guide/topics/connectivity/wifi-scan#wifi-scan-restrictions
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,12 +54,12 @@ public class MainActivity extends AppCompatActivity {
         wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiReceiver = new WifiReceiver();
 
-
         registerReceiver(wifiReceiver,new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 
         if (!wifiManager.isWifiEnabled()){
             Toast.makeText(this, "Your Wifi is disabled....You need to enable it", Toast.LENGTH_SHORT).show();
-            wifiManager.setWifiEnabled(true);
+            wifiManager.setWifiEnabled(true);       //Return whether Wi-Fi is enabled or disabled.
+
         }
         /*if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},0);

@@ -2,9 +2,12 @@ package com.example.wifiscannerapp;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.AnimationDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
@@ -114,7 +117,34 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
                 wifiManager.disconnect();
                 wifiManager.enableNetwork(netId, true);
                 wifiManager.reconnect();*/
-                connectToWifi(scanResultList.get(position).SSID);
+
+                if (scanResultList.get(position).capabilities.toUpperCase().contains("WEP")){
+                    // WEP Network
+                    connectToWifi(scanResultList.get(position).SSID);
+                }
+                else if (scanResultList.get(position).capabilities.toUpperCase().contains("WPA")||scanResultList.get(position).capabilities.contains("WPA2")){
+                    // WPA or WPA2 Network
+                    connectToWifi(scanResultList.get(position).SSID);
+                }
+                else {
+                    Toast.makeText(context, "Not Secured!!!", Toast.LENGTH_SHORT).show();
+
+                    wifiConfig = new WifiConfiguration();
+                    wifiConfig.SSID = "\"" + scanResultList.get(position).SSID + "\"";
+                    wifiConfig.hiddenSSID = true;
+                    wifiConfig.priority = 0xBADBAD;
+                    wifiConfig.status = WifiConfiguration.Status.ENABLED;
+                    wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+
+                    WifiManager wifiManager = (WifiManager)context.getApplicationContext().getSystemService(WIFI_SERVICE);
+
+                    //remember id
+                    int id = wifiManager.addNetwork(wifiConfig);
+                    wifiManager.disconnect();
+                    wifiManager.enableNetwork(id, true);
+                    wifiManager.reconnect();
+                }
+                //connectToWifi(scanResultList.get(position).SSID);
             }
         });
     }
@@ -251,6 +281,12 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
     }
     public void finallyConnect(String networkPass, String networkSSID) {
 
+        final ProgressDialog dialog = new ProgressDialog(activity);
+        dialog.setCancelable(false);
+        dialog.setMessage("Please Wait!!");
+        dialog.setTitle("Connecting To Wifi...");
+        dialog.show();
+
         WifiConfiguration wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = String.format("\"%s\"", networkSSID);
         wifiConfig.preSharedKey = String.format("\"%s\"", networkPass);
@@ -261,6 +297,7 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
         int netId = wifiManager.addNetwork(wifiConfig);
         wifiManager.disconnect();
         wifiManager.enableNetwork(netId, true);
+        dialog.dismiss();
         wifiManager.reconnect();
 
         WifiConfiguration conf = new WifiConfiguration();

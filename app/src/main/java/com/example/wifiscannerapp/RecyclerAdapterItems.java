@@ -128,7 +128,7 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
                 }
                 else {
                     Toast.makeText(context, "Not Secured!!!", Toast.LENGTH_SHORT).show();
-
+                    //open network
                     wifiConfig = new WifiConfiguration();
                     wifiConfig.SSID = "\"" + scanResultList.get(position).SSID + "\"";
                     wifiConfig.hiddenSSID = true;

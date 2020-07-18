@@ -2,6 +2,7 @@ package com.example.wifiscannerapp;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,6 +19,9 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -47,10 +51,10 @@ public class ListActivity extends AppCompatActivity {
 
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
-        if (!wifiManager.isWifiEnabled()){
+        /*if (!wifiManager.isWifiEnabled()){
             Toast.makeText(this, "Your Wifi is disabled....You need to enable it", Toast.LENGTH_SHORT).show();
             wifiManager.setWifiEnabled(true);
-        }
+        }*/
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Toast.makeText(ListActivity.this, "version> = marshmallow", Toast.LENGTH_SHORT).show();
             if (ContextCompat.checkSelfPermission(ListActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED) {
@@ -121,5 +125,43 @@ public class ListActivity extends AppCompatActivity {
                 Toast.makeText(ListActivity.this, "permission not granted", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        MenuItem switchId = menu.findItem(R.id.switchId);
+        switchId.setActionView(R.layout.switch_layout);
+        SwitchCompat switchOnOff = switchId.getActionView().findViewById(R.id.wifiSwitch);
+        switchOnOff.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked){
+                    Log.d("onCheckedChangedIf:",""+wifiManager.isWifiEnabled());
+                    Toast.makeText(ListActivity.this, "ON", Toast.LENGTH_SHORT).show();
+                    wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    wifiManager.setWifiEnabled(true);
+                }
+                else {
+                    Log.e("onCheckedChanged :",""+wifiManager.isWifiEnabled());
+                    Toast.makeText(ListActivity.this, "OFF", Toast.LENGTH_SHORT).show();
+                    wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    wifiManager.setWifiEnabled(false);
+                }
+            }
+        });
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id == R.id.logout){
+            // do something
+           /* sharePrefs.removeAllSP();
+            Log.e("cleared sharedPrefrence","data");
+            addFragment(PhoneAuthenticationFragment.class.getSimpleName(),false,null);*/
+            Toast.makeText(this, "Logout!!", Toast.LENGTH_SHORT).show();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

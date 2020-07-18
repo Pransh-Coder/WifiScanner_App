@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView.LayoutManager layoutManager;
     RecyclerView.Adapter adapter;
 
+    int flag=0;
+
     List<ScanResult>scanResultList = new ArrayList<>();     //the list of access points found in the most recent scan
     //List<WifiInfo> wifiInfoList = new ArrayList<>();
 
@@ -72,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
         else {
             scanWifiList();
         }*/
+        if (wifiManager.isWifiEnabled()){
+            Toast.makeText(this, "Wifi is Enabled!!", Toast.LENGTH_SHORT).show();
+            flag = 1;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Toast.makeText(MainActivity.this, "version> = marshmallow", Toast.LENGTH_SHORT).show();
             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED) {
@@ -108,12 +114,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStop() {
         super.onStop();
-        this.unregisterReceiver(wifiReceiver);
+        unregisterReceiver(wifiReceiver);
     }
     @Override
     public void onPause() {
         super.onPause();
-        this.unregisterReceiver(wifiReceiver);
+        unregisterReceiver(wifiReceiver);
 
     }
 
@@ -188,6 +194,9 @@ public class MainActivity extends AppCompatActivity {
         MenuItem switchId = menu.findItem(R.id.switchId);
         switchId.setActionView(R.layout.switch_layout);
         SwitchCompat switchOnOff = switchId.getActionView().findViewById(R.id.wifiSwitch);
+        if (flag==1){
+            switchOnOff.setChecked(true);
+        }
         switchOnOff.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {

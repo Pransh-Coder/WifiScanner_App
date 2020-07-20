@@ -37,10 +37,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout linearLayout;
     TextView wifiName,capability;
     ImageView imageView;
+
+    //FloatingActionButton disconnect;
+    CircleImageView disconnect;
 
     int flag=0;
     int val;
@@ -94,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
         wifiName = findViewById(R.id.wifiname2);
         capability = findViewById(R.id.capibility2);
         imageView =findViewById(R.id.imageView2);
+
+        disconnect = findViewById(R.id.disconnect);
 
         wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiReceiver = new WifiReceiver();
@@ -164,6 +173,19 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "OFF", Toast.LENGTH_SHORT).show();
                     wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
                     wifiManager.setWifiEnabled(false);
+                }
+            }
+        });
+
+        disconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                if (wifiManager != null && wifiManager.isWifiEnabled()) {
+                    /*int netId = wifiManager.getConnectionInfo().getNetworkId();
+                    wifiManager.disableNetwork(netId);*/
+                    boolean b = wifiManager.disconnect();
+                    Log.e("disconnect",""+b);
                 }
             }
         });
@@ -274,6 +296,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e("flag value",""+flag);
             switchCompat.setChecked(true);
             Toast.makeText(this, "Wifi is Enabled!!", Toast.LENGTH_SHORT).show();
+            registerReceiver(wifiReceiver,new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         }
         else if(!wifiManager.isWifiEnabled()){
             //flag = 3;

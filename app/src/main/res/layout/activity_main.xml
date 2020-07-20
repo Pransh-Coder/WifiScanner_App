@@ -60,7 +60,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="gone"
+
         app:layout_constraintTop_toBottomOf="@id/appbar">
 
 
@@ -123,6 +123,29 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/wifiname2"/>
 
+              <!--  <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/disconnect"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/closeimg"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>-->
+
+             <!--   <ImageButton
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@color/colorAccent"
+                    android:src="@drawable/closeimg"
+                    app:layout_constraintRight_toRightOf="parent"-->
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/disconnect"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/closeimg"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"/>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

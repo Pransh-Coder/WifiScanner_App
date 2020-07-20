@@ -14,29 +14,51 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ListActivity extends AppCompatActivity {
 
     WifiManager wifiManager;
-    MainActivity.WifiReceiver wifiReceiver;
 
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
     RecyclerView.Adapter adapter;
+    SwitchCompat switchCompat;
 
+    LinearLayout linearLayout;
+    TextView wifiName,capability;
+    ImageView imageView;
+
+    //FloatingActionButton disconnect;
+    CircleImageView disconnect;
+
+    int flag=0;
     //List<ScanResult> scanResultList = new ArrayList<>();
+
+    List<ScanResult> results;
 
     //https://developer.android.com/guide/topics/connectivity/wifi-scan#wifi-scan-restrictions
 
@@ -48,8 +70,29 @@ public class ListActivity extends AppCompatActivity {
         recyclerView=findViewById(R.id.recyclerView2);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+        switchCompat = findViewById(R.id.wifiSwitch);
+
+        linearLayout = findViewById(R.id.Linear);
+        wifiName = findViewById(R.id.wifiname2);
+        capability = findViewById(R.id.capibility2);
+        imageView =findViewById(R.id.imageView2);
+
+        disconnect = findViewById(R.id.disconnect);
 
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        final Handler handler = new Handler();
+        Timer timer = new Timer();
+        TimerTask doAsynchronousTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                       int val =  isWifiEnabled();
+                    }
+                });
+            }
+        };timer.schedule(doAsynchronousTask, 0, 2000);
 
         /*if (!wifiManager.isWifiEnabled()){
             Toast.makeText(this, "Your Wifi is disabled....You need to enable it", Toast.LENGTH_SHORT).show();
@@ -68,6 +111,35 @@ public class ListActivity extends AppCompatActivity {
             Toast.makeText(ListActivity.this, "scanning", Toast.LENGTH_SHORT).show();
             //scanWifiList();
         }
+        switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked){
+                    Log.d("onCheckedChangedIf:",""+wifiManager.isWifiEnabled());
+                    Toast.makeText(ListActivity.this, "ON", Toast.LENGTH_SHORT).show();
+                    wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    wifiManager.setWifiEnabled(true);
+                }
+                else {
+                    Log.e("onCheckedChanged :",""+wifiManager.isWifiEnabled());
+                    Toast.makeText(ListActivity.this, "OFF", Toast.LENGTH_SHORT).show();
+                    wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    wifiManager.setWifiEnabled(false);
+                }
+            }
+        });
+        disconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                if (wifiManager != null && wifiManager.isWifiEnabled()) {
+                    /*int netId = wifiManager.getConnectionInfo().getNetworkId();
+                    wifiManager.disableNetwork(netId);*/
+                    boolean b = wifiManager.disconnect();
+                    Log.e("disconnect",""+b);
+                }
+            }
+        });
 
         BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
             @Override
@@ -80,21 +152,70 @@ public class ListActivity extends AppCompatActivity {
                     // scan failure handling
                     scanFailure();
                 }
+
+                ConnectivityManager connectivityManager =
+                        (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
+
+                if (activeNetInfo != null  && activeNetInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                    Toast.makeText(context, "Wifi Connected!", Toast.LENGTH_SHORT).show();
+                    linearLayout.setVisibility(View.VISIBLE);
+
+                    WifiInfo info = wifiManager.getConnectionInfo ();
+                    String ssid  = info.getSSID();
+                    int len = ssid.length();
+                    String winam = ssid.substring(1,len-1);
+                    String capp="";
+                    for (int i = 0; i < results.size(); i++){
+
+                        if (results.get(i).SSID.equalsIgnoreCase(winam)){
+                            //Toast.makeText(this, "found!!", Toast.LENGTH_SHORT).show();
+                            Log.e("scanWifiList", "Found!!");
+                            capp = results.get(i).capabilities;
+                            Log.e("Capabilities", ""+capp);
+
+                            if (results.get(i).level <= 0 && results.get(i).level >= -50) {
+                                //Best signal
+                                imageView.setBackgroundResource(R.drawable.signal_4);
+
+                            } else if (results.get(i).level < -50 && results.get(i).level >= -70) {
+                                //Good signal
+                                imageView.setBackgroundResource(R.drawable.signal_3);
+
+                            } else if (results.get(i).level < -70 && results.get(i).level >= -80) {
+                                //Low signal
+                                imageView.setBackgroundResource(R.drawable.signal_2);
+
+                            } else if (results.get(i).level < -80 && results.get(i).level >= -100) {
+                                //Very weak signal
+                                imageView.setBackgroundResource(R.drawable.signal_1);
+
+                            }
+                        }
+                    }
+                    wifiName.setText(winam);
+                    capability.setText(capp);
+                    //flag=1;
+                } else {
+                    Toast.makeText(context, "Wifi Not Connected!", Toast.LENGTH_SHORT).show();
+                    linearLayout.setVisibility(View.GONE);
+                    //flag=3;
+                }
             }
         };
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        this.registerReceiver(wifiScanReceiver, intentFilter);
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+            this.registerReceiver(wifiScanReceiver, intentFilter);
 
-        boolean success = wifiManager.startScan();
-        if (!success) {
-            // scan failure handling
-            scanFailure();
-        }
+            boolean success = wifiManager.startScan();
+            if (!success) {
+                // scan failure handling
+                scanFailure();
+            }
     }
     private void scanSuccess() {
-        List<ScanResult> results = wifiManager.getScanResults();
+         results = wifiManager.getScanResults();
         //... use new scan results ...
         //scanResultList=wifiManager.getScanResults();
         Log.e("length",""+results.size());
@@ -163,5 +284,23 @@ public class ListActivity extends AppCompatActivity {
             Toast.makeText(this, "Logout!!", Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public int isWifiEnabled() {
+        if (wifiManager.isWifiEnabled()){
+            //flag = 1;
+            //Log.e("flag value",""+flag);
+            switchCompat.setChecked(true);
+            Toast.makeText(this, "Wifi is Enabled!!", Toast.LENGTH_SHORT).show();
+            //registerReceiver(wifiReceiver,new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        }
+        else if(!wifiManager.isWifiEnabled()){
+            //flag = 3;
+            //Log.e("flag value",""+flag);
+            switchCompat.setChecked(false);
+            Toast.makeText(this, "Wifi is Disabled!!", Toast.LENGTH_SHORT).show();
+        }
+        Log.e("isWifiEnabled", ""+flag );
+        return flag;
     }
 }

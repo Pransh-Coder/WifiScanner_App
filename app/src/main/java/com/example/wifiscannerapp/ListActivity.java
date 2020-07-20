@@ -129,7 +129,7 @@ public class ListActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
-        MenuItem switchId = menu.findItem(R.id.switchId);
+        /*MenuItem switchId = menu.findItem(R.id.switchId);
         switchId.setActionView(R.layout.switch_layout);
         SwitchCompat switchOnOff = switchId.getActionView().findViewById(R.id.wifiSwitch);
         switchOnOff.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -148,7 +148,7 @@ public class ListActivity extends AppCompatActivity {
                     wifiManager.setWifiEnabled(false);
                 }
             }
-        });
+        });*/
         return true;
     }
 

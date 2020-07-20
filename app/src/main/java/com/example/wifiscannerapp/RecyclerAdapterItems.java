@@ -69,7 +69,7 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
         holder.Ipaddress.setText("IP Adress: " + scanResultList.get(position).BSSID);         //ip
         holder.capbility.setText("Capibilities : " + scanResultList.get(position).capabilities);
         holder.level.setText("Level : " + scanResultList.get(position).level);
-        holder.frequency.setText("Level : " + scanResultList.get(position).frequency);
+        holder.frequency.setText("Frequency : " + scanResultList.get(position).frequency);
 
         // For setting Animation
         /*holder.imageView.setBackgroundResource(R.drawable.animation);
@@ -147,6 +147,14 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
                 //connectToWifi(scanResultList.get(position).SSID);
             }
         });
+
+       /* holder.disconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                WifiManager wifi = (WifiManager)context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                wifi.disconnect();
+            }
+        });*/
     }
 
     @Override
@@ -162,6 +170,8 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
 
         ConstraintLayout constraintLayout;
 
+        Button disconnect;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
@@ -172,6 +182,7 @@ public class RecyclerAdapterItems extends RecyclerView.Adapter<RecyclerAdapterIt
             frequency = itemView.findViewById(R.id.freq);
             imageView = itemView.findViewById(R.id.imageView);
             constraintLayout = itemView.findViewById(R.id.constraintView2);
+            //disconnect = itemView.findViewById(R.id.disconnect);
         }
     }
 

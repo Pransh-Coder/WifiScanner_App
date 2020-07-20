@@ -16,6 +16,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
@@ -23,32 +25,61 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
     WifiManager wifiManager;
     WifiReceiver wifiReceiver;
+    SwitchCompat switchOnOff;
     SwitchCompat switchCompat;
 
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
     RecyclerView.Adapter adapter;
 
+    LinearLayout linearLayout;
+    TextView wifiName,capability;
+    ImageView imageView;
+
     int flag=0;
+    int val;
 
     List<ScanResult>scanResultList = new ArrayList<>();     //the list of access points found in the most recent scan
     //List<WifiInfo> wifiInfoList = new ArrayList<>();
 
     //https://developer.android.com/guide/topics/connectivity/wifi-scan#wifi-scan-restrictions
+
+/*    Handler handler = new Handler();
+
+    // Define the code block to be executed
+    //It is used for checking the wifi state infinetly after 2 sec
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            // Insert custom code here
+            isWifiEnabled();
+            // Repeat every 2 seconds
+            handler.postDelayed(runnable, 200);
+        }
+    };*/
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,11 +88,32 @@ public class MainActivity extends AppCompatActivity {
         recyclerView=findViewById(R.id.recyclerView);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+        switchCompat = findViewById(R.id.wifiSwitch);
+
+        linearLayout = findViewById(R.id.Linear);
+        wifiName = findViewById(R.id.wifiname2);
+        capability = findViewById(R.id.capibility2);
+        imageView =findViewById(R.id.imageView2);
 
         wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiReceiver = new WifiReceiver();
 
         registerReceiver(wifiReceiver,new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+
+
+        final Handler handler = new Handler();
+        Timer timer = new Timer();
+        TimerTask doAsynchronousTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        val =  isWifiEnabled();
+                    }
+                });
+            }
+        };timer.schedule(doAsynchronousTask, 0, 2000);
+
 
       /*  if (!wifiManager.isWifiEnabled()){
             Toast.makeText(this, "Your Wifi is disabled....You need to enable it", Toast.LENGTH_SHORT).show();
@@ -74,10 +126,17 @@ public class MainActivity extends AppCompatActivity {
         else {
             scanWifiList();
         }*/
-        if (wifiManager.isWifiEnabled()){
-            Toast.makeText(this, "Wifi is Enabled!!", Toast.LENGTH_SHORT).show();
-            flag = 1;
+
+    /*    if (wifiManager.isWifiEnabled()){
+            Toast.makeText(this, "Enabled!! wifi ", Toast.LENGTH_SHORT).show();
+            //flag = 1;
         }
+        else if(!wifiManager.isWifiEnabled()){
+            //flag=3;
+            Toast.makeText(this, "Disabled!! wifi ", Toast.LENGTH_SHORT).show();
+        }*/
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Toast.makeText(MainActivity.this, "version> = marshmallow", Toast.LENGTH_SHORT).show();
             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED) {
@@ -91,7 +150,23 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "scanning", Toast.LENGTH_SHORT).show();
             scanWifiList();
         }
-
+        switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked){
+                    Log.d("onCheckedChangedIf:",""+wifiManager.isWifiEnabled());
+                    Toast.makeText(MainActivity.this, "ON", Toast.LENGTH_SHORT).show();
+                    wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    wifiManager.setWifiEnabled(true);
+                }
+                else {
+                    Log.e("onCheckedChanged :",""+wifiManager.isWifiEnabled());
+                    Toast.makeText(MainActivity.this, "OFF", Toast.LENGTH_SHORT).show();
+                    wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    wifiManager.setWifiEnabled(false);
+                }
+            }
+        });
     }
 
     public void scanWifiList() {
@@ -102,13 +177,71 @@ public class MainActivity extends AppCompatActivity {
         //wifiInfoList= (List<WifiInfo>)wifiManager .getConnectionInfo();//
         adapter = new RecyclerAdapterItems(getApplicationContext(),scanResultList,this);
         recyclerView.setAdapter(adapter);
+
+       /* for (int i = 0; i < scanResultList.size(); i++){
+
+            if (scanResultList.get(i).SSID.equalsIgnoreCase("D-Link")){
+                //Toast.makeText(this, "found!!", Toast.LENGTH_SHORT).show();
+                Log.e("scanWifiList", "Found!!");
+                String capp = scanResultList.get(i).capabilities;
+                Log.e("Capabilities", ""+capp);
+            }
+        }*/
     }
+
 
     class WifiReceiver extends BroadcastReceiver{
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            ConnectivityManager connectivityManager =
+                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
 
+            if (activeNetInfo != null  && activeNetInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                Toast.makeText(context, "Wifi Connected!", Toast.LENGTH_SHORT).show();
+                linearLayout.setVisibility(View.VISIBLE);
+
+                WifiInfo info = wifiManager.getConnectionInfo ();
+                String ssid  = info.getSSID();
+                int len = ssid.length();
+                String winam = ssid.substring(1,len-1);
+                String capp="";
+                for (int i = 0; i < scanResultList.size(); i++){
+
+                    if (scanResultList.get(i).SSID.equalsIgnoreCase(winam)){
+                        //Toast.makeText(this, "found!!", Toast.LENGTH_SHORT).show();
+                        Log.e("scanWifiList", "Found!!");
+                        capp = scanResultList.get(i).capabilities;
+                        Log.e("Capabilities", ""+capp);
+
+                        if (scanResultList.get(i).level <= 0 && scanResultList.get(i).level >= -50) {
+                            //Best signal
+                            imageView.setBackgroundResource(R.drawable.signal_4);
+
+                        } else if (scanResultList.get(i).level < -50 && scanResultList.get(i).level >= -70) {
+                            //Good signal
+                            imageView.setBackgroundResource(R.drawable.signal_3);
+
+                        } else if (scanResultList.get(i).level < -70 && scanResultList.get(i).level >= -80) {
+                            //Low signal
+                            imageView.setBackgroundResource(R.drawable.signal_2);
+
+                        } else if (scanResultList.get(i).level < -80 && scanResultList.get(i).level >= -100) {
+                            //Very weak signal
+                            imageView.setBackgroundResource(R.drawable.signal_1);
+
+                        }
+                    }
+                }
+                wifiName.setText(winam);
+                capability.setText(capp);
+                //flag=1;
+            } else {
+                Toast.makeText(context, "Wifi Not Connected!", Toast.LENGTH_SHORT).show();
+                linearLayout.setVisibility(View.GONE);
+                //flag=3;
+            }
         }
     }
     @Override
@@ -127,6 +260,29 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         registerReceiver(wifiReceiver,new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(wifiReceiver,new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+    }
+
+    public int isWifiEnabled() {
+        if (wifiManager.isWifiEnabled()){
+            //flag = 1;
+            Log.e("flag value",""+flag);
+            switchCompat.setChecked(true);
+            Toast.makeText(this, "Wifi is Enabled!!", Toast.LENGTH_SHORT).show();
+        }
+        else if(!wifiManager.isWifiEnabled()){
+            //flag = 3;
+            Log.e("flag value",""+flag);
+            switchCompat.setChecked(false);
+            Toast.makeText(this, "Wifi is Disabled!!", Toast.LENGTH_SHORT).show();
+        }
+        Log.e("isWifiEnabled", ""+flag );
+        return flag;
     }
 
     @Override
@@ -191,11 +347,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
-        MenuItem switchId = menu.findItem(R.id.switchId);
+        /*MenuItem switchId = menu.findItem(R.id.switchId);
         switchId.setActionView(R.layout.switch_layout);
-        SwitchCompat switchOnOff = switchId.getActionView().findViewById(R.id.wifiSwitch);
+        switchOnOff = switchId.getActionView().findViewById(R.id.wifiSwitch);
         if (flag==1){
             switchOnOff.setChecked(true);
+            Log.e("onCreateOptionsMenu:", "checked!!");
+        }
+        else if (flag==3){
+            switchOnOff.setChecked(false);
+            Log.e("onCreateOptionsMenu:", "checked!!");
         }
         switchOnOff.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -213,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
                     wifiManager.setWifiEnabled(false);
                 }
             }
-        });
+        });*/
         return true;
     }
 
@@ -229,4 +390,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+
 }

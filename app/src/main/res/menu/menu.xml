@@ -7,10 +7,10 @@
         android:orderInCategory="100"
         android:title="Logout" />
 
-    <item
+  <!--  <item
         android:id="@+id/switchId"
         android:title=""
         app:showAsAction="always"
-        android:actionLayout="@layout/switch_layout"/>
+        android:actionLayout="@layout/switch_layout"/>-->
 
 </menu>
